@@ -13,6 +13,7 @@ export default class Main extends Component {
     newRepo: '',
     repositories: [],
     loading: false,
+    error: null,
   };
 
   componentDidMount() {
@@ -43,22 +44,37 @@ export default class Main extends Component {
 
     const { newRepo, repositories } = this.state;
 
-    const response = await api.get(`/repos/${newRepo}`);
+    try {
+      if (newRepo === '') throw Error();
 
-    const data = {
-      name: response.data.full_name,
-    };
+      const repoExists = repositories.find(repo => repo.name === newRepo);
 
-    this.setState({
-      repositories: [...repositories, data ],
-      newRepo: '',
-      loading: false,
-    });
+      if (repoExists) throw Error();
+
+      const response = await api.get(`/repos/${newRepo}`);
+
+      const data = {
+        name: response.data.full_name,
+      };
+
+      this.setState({
+        repositories: [...repositories, data ],
+        newRepo: '',
+        loading: false,
+      });
+
+    } catch (error) {
+
+      this.setState({ error: true });
+    }
   };
 
   render() {
-    const { newRepo, repositories, loading } = this.state;
+    const { newRepo, repositories, loading, error } = this.state;
 
+    if (error) {
+      return <h1>Erro ao buscar repositório</h1>
+    }
 
     return (
       <Container>
